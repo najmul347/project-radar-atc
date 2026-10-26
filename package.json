@@ -1,0 +1,16 @@
+{
+  "name": "project-radar-atc-training-system",
+  "version": "1.0.0",
+  "description": "Project RADAR ATC Training System - Real-time Air Traffic Control Radar & Pseudo-Pilot Training Simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
+  }
+}

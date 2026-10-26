@@ -1,0 +1,434 @@
+/* Pseudo-Pilot Console Styles */
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #080d14;
+  color: var(--text-main);
+  overflow-y: auto;
+}
+
+.pilot-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+.pilot-header {
+  height: 56px;
+  background-color: #0e1520;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.pilot-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pilot-title h1 {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.instructor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-btn {
+  font-size: 13px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.btn-spawn {
+  background-color: #1e3a5f;
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+.btn-spawn:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.btn-pause {
+  background-color: #332610;
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+.btn-pause:hover {
+  background-color: var(--accent-amber);
+  color: #000;
+}
+
+.btn-reset {
+  background-color: #3b141e;
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+.btn-reset:hover {
+  background-color: var(--accent-red);
+  color: #fff;
+}
+
+/* Main Dashboard Grid */
+.pilot-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 20px;
+  padding: 20px 24px;
+  max-width: 1700px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 1080px) {
+  .pilot-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Panel: Active Aircraft Table */
+.traffic-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 14px 20px;
+  background-color: #131c28;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.aircraft-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.aircraft-table th {
+  background-color: #0f1722;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.aircraft-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(36, 53, 72, 0.4);
+  color: #d1d5db;
+}
+
+.aircraft-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.aircraft-row:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.aircraft-row.selected {
+  background-color: rgba(0, 210, 255, 0.12) !important;
+  border-left: 4px solid var(--accent-cyan);
+}
+
+.aircraft-row.conflict {
+  background-color: rgba(255, 59, 92, 0.1) !important;
+}
+
+.callsign-cell {
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Right Panel: Pilot Clearance Controls */
+.control-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-aircraft-banner {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #162438 0%, #101927 100%);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.banner-left h2 {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.banner-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.control-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.control-label .current-val {
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.input-with-addons {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-addons input {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.input-unit {
+  padding: 8px 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+/* Quick Action Buttons Grid */
+.quick-btns-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.quick-btn {
+  padding: 6px 4px;
+  font-size: 11px;
+  text-align: center;
+  border-radius: 4px;
+  background-color: #121c27;
+}
+
+.quick-btn:hover {
+  background-color: #1c2b3d;
+  border-color: var(--accent-cyan);
+}
+
+/* Transmit Button */
+.btn-transmit {
+  margin-top: 10px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border: 1px solid #34d399;
+  color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-transmit:hover {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.btn-transmit:active {
+  transform: translateY(1px);
+}
+
+/* Transmission Readback Log */
+.readback-box {
+  background-color: #0b121a;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.readback-title {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.readback-message {
+  color: #a7f3d0;
+  line-height: 1.4;
+}
+
+/* Modal for Spawning Aircraft */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(4, 8, 14, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-content {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 8px;
+  width: 480px;
+  max-width: 95vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  background-color: #131c28;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--accent-cyan);
+}
+
+.modal-close {
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-muted);
+}
+.modal-close:hover {
+  color: #fff;
+}
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  background-color: #101824;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

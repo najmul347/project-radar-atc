@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project RADAR ATC Training System (Student Position)</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/atc.css">
+</head>
+<body>
+  <div class="radar-wrapper">
+    <!-- Top Menu Bar -->
+    <header class="radar-header">
+      <div class="topsky-btn-group">
+        <button class="topsky-btn active" id="topUtcClock" title="Simulation Time (UTC)">01:00:00 UTC</button>
+        <button class="topsky-btn">02L/02C/02R</button>
+        <button class="topsky-btn">1013</button>
+        <button class="topsky-btn">E10</button>
+      </div>
+
+      <div class="topsky-title">
+        <div class="session-selector-nav">
+          <span class="session-badge" id="sessionLabel">SESSION 01</span>
+        </div>
+        <span class="badge badge-cyan" style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8;">
+          STUDENT ATC POSITION
+        </span>
+        <span id="simStatusBadge" class="badge badge-amber">PAUSED [01:00:00Z]</span>
+      </div>
+
+      <div id="conflictAlert" class="conflict-alert">
+        <span>⚠️ CA: LOSS OF SEPARATION</span>
+      </div>
+
+      <div class="radar-stats">
+        <div class="stat-item">
+          <span>TRAFFIC:</span>
+          <span id="aircraftCount" class="stat-value">1</span>
+        </div>
+        <div class="stat-item">
+          <span>UTC:</span>
+          <span id="utcClock" class="stat-value">01:00:00Z</span>
+        </div>
+        <div class="stat-item">
+          <a id="linkOpenPilot" href="/pilot" target="_blank" style="text-decoration: none;">
+            <button class="radar-btn" style="border-color: var(--atm-yellow); color: var(--atm-yellow);">
+              Open Pilot Console ↗
+            </button>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Transmission Notification Toast -->
+    <div id="transmissionToast" class="transmission-toast">
+      <span>📡</span> <span id="toastText">Radio transmission</span>
+    </div>
+
+    <!-- Radar Canvas Area -->
+    <main class="radar-canvas-container" id="canvasContainer">
+      <canvas id="radarCanvas"></canvas>
+
+      <!-- ATM Right-Click Context Menu (for "Assume" Control) -->
+      <div id="atmContextMenu" class="atm-context-menu">
+        <div id="ctxHeader" class="atm-context-header">MAS642 • B738</div>
+        <div id="ctxAssume" class="atm-context-item assume-opt">
+          <span>✓</span> <span id="ctxAssumeText">Assume</span>
+        </div>
+        <div id="ctxToggleRoute" class="atm-context-item route-opt">
+          <span>🛣</span> <span id="ctxRouteText">Toggle Route (Green)</span>
+        </div>
+        <div id="ctxAltDropdown" class="atm-context-item">
+          <span>↕</span> <span>Set Altitude (Dropdown)</span>
+        </div>
+        <div id="ctxHdgDropdown" class="atm-context-item">
+          <span>↔</span> <span>Set Heading (Dropdown)</span>
+        </div>
+        <div id="ctxClearance" class="atm-context-item">
+          <span>✎</span> <span>Key In Clearance</span>
+        </div>
+      </div>
+
+      <!-- Student ATC Clearance Key-In Popover -->
+      <div id="clearancePopover" class="clearance-popover">
+        <div class="popover-header">
+          <div>
+            <span id="popCallsign" class="callsign">MAS642</span>
+            <span id="popType" class="badge" style="background: #1e293b; color: #94a3b8; margin-left: 6px;">B738</span>
+          </div>
+          <span id="closePopover" class="close-btn">&times;</span>
+        </div>
+
+        <!-- Cleared Altitude (FL) Dropdown -->
+        <div class="popover-field">
+          <div class="popover-label">
+            <span>Cleared Altitude / FL</span>
+            <span class="cur-val">Current: <b id="popCurAlt" style="color: #22c55e;">FL280</b></span>
+          </div>
+          <select id="popSelectAltFL" class="drawer-select" style="margin-top: 4px;"></select>
+          <div class="popover-shortcuts">
+            <button type="button" onclick="setPopAlt(20000)">FL200</button>
+            <button type="button" onclick="setPopAlt(27000)">FL270</button>
+            <button type="button" onclick="setPopAlt(28000)">FL280</button>
+            <button type="button" onclick="setPopAlt(33000)">FL330</button>
+          </div>
+          <div class="popover-shortcuts">
+            <button type="button" onclick="adjPopAlt(1000)">+1,000 ft</button>
+            <button type="button" onclick="adjPopAlt(-1000)">-1,000 ft</button>
+            <button type="button" onclick="adjPopAlt(2000)">+2,000 ft</button>
+            <button type="button" onclick="adjPopAlt(-2000)">-2,000 ft</button>
+          </div>
+        </div>
+
+        <!-- Cleared Heading Dropdown -->
+        <div class="popover-field">
+          <div class="popover-label">
+            <span>Cleared Heading</span>
+            <span class="cur-val">Current: <b id="popCurHdg" style="color: #38bdf8;">047°</b></span>
+          </div>
+          <select id="popSelectHeading" class="drawer-select" style="margin-top: 4px;"></select>
+          <!-- Direct to Waypoints -->
+          <div class="popover-shortcuts" style="grid-template-columns: repeat(4, 1fr);">
+            <button type="button" onclick="directPopWp('GOLF')">Dir GOLF</button>
+            <button type="button" onclick="directPopWp('ALPHA')">Dir ALPHA</button>
+            <button type="button" onclick="directPopWp('BRAVO')">Dir BRAVO</button>
+            <button type="button" onclick="directPopWp('CHARLIE')">Dir CHARLIE</button>
+          </div>
+          <div class="popover-shortcuts" style="grid-template-columns: repeat(3, 1fr);">
+            <button type="button" onclick="directPopWp('DELTA')">Dir DELTA</button>
+            <button type="button" onclick="directPopWp('ECHO')">Dir ECHO</button>
+            <button type="button" onclick="directPopWp('FOXTROT')">Dir FOXTROT</button>
+          </div>
+          <div class="popover-shortcuts">
+            <button type="button" onclick="adjPopHdg(-10)">Turn L 10°</button>
+            <button type="button" onclick="adjPopHdg(-30)">Turn L 30°</button>
+            <button type="button" onclick="adjPopHdg(10)">Turn R 10°</button>
+            <button type="button" onclick="adjPopHdg(30)">Turn R 30°</button>
+          </div>
+        </div>
+
+        <!-- Assigned Speed (Optional) -->
+        <div class="popover-field">
+          <div class="popover-label">
+            <span>Assigned Speed</span>
+            <span class="cur-val">Current: <b id="popCurSpd">426 kt</b></span>
+          </div>
+          <div class="popover-input-row">
+            <input type="number" id="popInputSpeed" min="120" max="550" step="5" placeholder="e.g. 420">
+            <div class="popover-unit">KNOTS</div>
+          </div>
+        </div>
+
+        <button type="button" id="btnSendClearance" class="btn-issue-clearance">
+          🎙️ ISSUE CLEARANCE TO PILOT
+        </button>
+        <div style="font-size: 10px; color: var(--atm-text-muted); margin-top: 5px; text-align: center;">
+          Clearance will broadcast for pseudo-pilot execution
+        </div>
+      </div>
+
+      <!-- Radar Controls Overlay (Zoom & Vector, Sweep Beam Removed) -->
+      <div class="radar-controls-overlay">
+        <div class="control-btn-group">
+          <button id="btnZoomIn" class="radar-btn" title="Zoom In">Zoom +</button>
+          <button id="btnZoomOut" class="radar-btn" title="Zoom Out">Zoom -</button>
+          <button id="btnResetView" class="radar-btn" title="Reset Center">Center</button>
+        </div>
+        <div class="control-btn-group">
+          <button id="btnVectorLen" class="radar-btn" title="Cycle Vector Lookahead">Vector: 2 MIN</button>
+          <button id="btnToggleAudio" class="radar-btn" title="Toggle Sound">Sound: ON</button>
+        </div>
+      </div>
+
+      <!-- Airway Legend & Danger Areas Overlay -->
+      <div class="radar-legend">
+        <div class="legend-title">
+          <span>AIRWAY NETWORK</span>
+          <span style="color: var(--atm-yellow); font-size: 10px;">SECTOR 04</span>
+        </div>
+        <div class="legend-grid">
+          <div class="legend-item">✕ <span>GOLF</span> (Hub)</div>
+          <div class="legend-item">✕ <span>ALPHA</span> (NE)</div>
+          <div class="legend-item">✕ <span>BRAVO</span> (E)</div>
+          <div class="legend-item">✕ <span>CHARLIE</span> (SE)</div>
+          <div class="legend-item">✕ <span>DELTA</span> (SW)</div>
+          <div class="legend-item">✕ <span>ECHO</span> (W)</div>
+          <div class="legend-item">✕ <span>FOXTROT</span> (NW)</div>
+          <div class="legend-item"><span style="color: #ef4444;">■ DA1 - DA24</span></div>
+        </div>
+        <div style="margin-top: 6px; font-size: 10px; color: #94a3b8; border-top: 1px solid var(--atm-border); padding-top: 4px;">
+          💡 <i>Click & drag flight labels to reposition. Click a label to key in altitude & heading.</i>
+        </div>
+      </div>
+    </main>
+
+    <!-- Thales TopSky / Eurocat Bottom Bar (as seen in IMG_6687.jpg) -->
+    <footer class="radar-bottom-bar">
+      <div class="bottom-buttons-left">
+        <button class="bottom-btn">Airspace</button>
+        <button class="bottom-btn highlight">Ext Msg (41)</button>
+        <button class="bottom-btn alert">MAS642: Coord ></button>
+        <button class="bottom-btn">Agenda</button>
+        <button class="bottom-btn">Task List [0]</button>
+      </div>
+      <div style="color: var(--atm-text-muted); font-size: 10px;">
+        PROJECT RADAR ATC TRAINING SYSTEM • ACTIVE SECTOR TRACKING
+      </div>
+    </footer>
+  </div>
+
+  <!-- Socket.io and Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/audio.js"></script>
+  <script src="/js/radar-core.js"></script>
+  <script src="/js/atc.js"></script>
+</body>
+</html>

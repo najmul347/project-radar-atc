@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project RADAR ATC Training System - Multi-Session Portal</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #070b10;
+      color: #d8e2ec;
+      font-family: var(--font-sans);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==========================================================================
+       1. Login Page Overlay
+       ========================================================================== */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #0e1724 0%, #05080c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .login-card {
+      width: 460px;
+      max-width: 95vw;
+      background: #0d1520;
+      border: 1px solid #1e3a5f;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(56, 189, 248, 0.15);
+      border-radius: 8px;
+      padding: 34px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .login-header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .login-radar-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 6px;
+      position: relative;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+    }
+
+    .login-brand-title {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 1.2px;
+    }
+
+    .login-brand-subtitle {
+      font-size: 12px;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .login-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .login-field-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: #cbd5e1;
+      letter-spacing: 0.5px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      background: #070c12;
+      border: 1px solid #243548;
+      border-radius: 4px;
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      background: #091018;
+    }
+
+    .btn-login-submit {
+      width: 100%;
+      padding: 11px 16px;
+      background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      border: 1px solid #38bdf8;
+      border-radius: 4px;
+      color: #000;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-top: 4px;
+    }
+
+    .btn-login-submit:hover {
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+      filter: brightness(1.1);
+    }
+
+    .login-error-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .login-hint-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px dashed #334155;
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+
+    /* ==========================================================================
+       2. Top Navigation
+       ========================================================================== */
+    .top-nav {
+      height: 52px;
+      min-height: 52px;
+      background-color: #0d141e;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #00d2ff;
+      letter-spacing: 0.8px;
+      font-size: 14px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 4px;
+      background: #16202c;
+      border: 1px solid #243548;
+      color: #cbd5e1;
+    }
+
+    .nav-btn:hover {
+      background: #1e2b3d;
+      border-color: #00d2ff;
+      color: #fff;
+    }
+
+    .nav-btn.active {
+      background-color: rgba(0, 210, 255, 0.18);
+      border-color: #00d2ff;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .admin-pill-btn {
+      background: rgba(234, 179, 8, 0.15);
+      border-color: #eab308;
+      color: #facc15;
+      font-weight: 700;
+    }
+
+    .admin-pill-btn:hover {
+      background: #eab308;
+      color: #000;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+    }
+
+    .session-select-nav {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: #0f172a;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       3. Main Viewport & Lobby
+       ========================================================================== */
+    .main-viewport {
+      flex: 1;
+      height: calc(100% - 52px);
+      width: 100%;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .lobby-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .lobby-header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 16px;
+    }
+
+    .lobby-title {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .lobby-subtitle {
+      color: #94a3b8;
+      font-size: 13px;
+      max-width: 780px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .lobby-features-bar {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .lobby-feature-tag {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       4. Administrator Accounts Management Window (Admin Only)
+       ========================================================================== */
+    .admin-window {
+      background: linear-gradient(180deg, #0e1c2c 0%, #0a131e 100%);
+      border: 1px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(2, 132, 199, 0.2), 0 0 16px rgba(56, 189, 248, 0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .admin-window-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      padding-bottom: 12px;
+    }
+
+    .admin-window-title {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-window-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .admin-window-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .admin-pane {
+      background: #070c13;
+      border: 1px solid #1e3a5f;
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .admin-pane-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .admin-form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .admin-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .admin-input {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      background: #0b1219;
+      border: 1px solid #243548;
+      border-radius: 4px;
+      color: #fff;
+    }
+
+    .admin-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
+    }
+
+    .admin-alert {
+      padding: 7px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      display: none;
+    }
+
+    .admin-alert.success {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+      display: block;
+    }
+
+    .admin-alert.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      display: block;
+    }
+
+    .users-table-wrap {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #1a2736;
+      border-radius: 4px;
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: left;
+    }
+
+    .users-table th {
+      background: #0c141e;
+      color: #94a3b8;
+      padding: 8px 10px;
+      border-bottom: 1px solid #1a2736;
+      position: sticky;
+      top: 0;
+      font-size: 10px;
+    }
+
+    .users-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #121c27;
+      color: #e2e8f0;
+    }
+
+    .users-table tr:hover {
+      background: #0d1722;
+    }
+
+    .btn-del-user {
+      padding: 2px 7px;
+      font-size: 10px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .btn-del-user:hover:not(:disabled) {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-del-user:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: #64748b;
+      color: #64748b;
+    }
+
+    /* ==========================================================================
+       5. 3 Session Grid Cards
+       ========================================================================== */
+    .sessions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .session-card {
+      background: linear-gradient(180deg, #111a26 0%, #0d141e 100%);
+      border: 1px solid #243548;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease-in-out;
+      position: relative;
+    }
+
+    .session-card:hover {
+      border-color: #38bdf8;
+      box-shadow: 0 12px 32px rgba(56, 189, 248, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 12px;
+    }
+
+    .session-id-title {
+      font-family: var(--font-mono);
+      font-size: 19px;
+      font-weight: 700;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-sector-tag {
+      font-size: 11px;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      margin-top: 3px;
+    }
+
+    .session-status-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-paused {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid #eab308;
+      color: #facc15;
+    }
+
+    .status-running {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+    }
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #090e15;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #1a2533;
+      font-size: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .info-label {
+      color: #64748b;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    .info-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .info-val.highlight {
+      color: #38bdf8;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .btn-enter-role {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .btn-enter-student {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+    }
+
+    .btn-enter-student:hover {
+      background: #38bdf8;
+      color: #000;
+    }
+
+    .btn-enter-pilot {
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid #eab308;
+      color: #facc15;
+    }
+
+    .btn-enter-pilot:hover {
+      background: #eab308;
+      color: #000;
+    }
+
+    .btn-enter-dual {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 11px;
+      padding: 7px 10px;
+    }
+
+    .btn-enter-dual:hover {
+      background: #334155;
+      color: #f8fafc;
+      border-color: #64748b;
+    }
+
+    /* Embedded Split Frame View */
+    .split-view-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .split-half {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .split-half:first-child {
+      border-right: 2px solid #243548;
+    }
+
+    .split-frame {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. Login Page View (Starting Page)
+       ======================================================================== -->
+  <div id="loginView" class="login-overlay">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-radar-icon">
+          <span>📡</span>
+        </div>
+        <div class="login-brand-title">PROJECT RADAR</div>
+        <div class="login-brand-subtitle">ATC Training System • Access Portal</div>
+      </div>
+
+      <div id="loginErrorBox" class="login-error-box">
+        <span>⚠</span> <span id="loginErrorMsg">Invalid username or password</span>
+      </div>
+
+      <form id="loginForm" class="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="login-field-group">
+          <label class="login-field-label" for="loginUsername">USERNAME</label>
+          <input type="text" id="loginUsername" class="login-input" placeholder="e.g. admin1 or trainee" autocomplete="username" required autofocus>
+        </div>
+
+        <div class="login-field-group">
+          <label class="login-field-label" for="loginPassword">PASSWORD</label>
+          <input type="password" id="loginPassword" class="login-input" placeholder="Password" autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn-login-submit">
+          <span>🔒</span> SIGN IN TO PORTAL
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. Authenticated Portal View (Visible after Login)
+       ======================================================================== -->
+  <div id="portalView" style="display: none; height: 100%; flex-direction: column;">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <span>📡</span> PROJECT RADAR ATC TRAINING SYSTEM
+      </div>
+
+      <div class="nav-links">
+        <!-- User Info Indicator -->
+        <div class="user-pill">
+          <span>👤</span>
+          <span id="navUsername" style="color:#fff; font-weight:700;">admin1</span>
+          <span id="navRoleBadge" style="color: #38bdf8; font-size: 10px; background: rgba(56, 189, 248, 0.15); border: 1px solid #0284c7; padding: 1px 5px; border-radius: 3px;">
+            ADMIN
+          </span>
+        </div>
+
+        <!-- Admin Only Button: User Accounts Window Toggle -->
+        <button id="btnAdminAccountsNav" class="nav-btn admin-pill-btn" onclick="toggleAdminWindow()" style="display: none;">
+          👑 User Accounts
+        </button>
+
+        <span style="color: #334155;">|</span>
+
+        <button id="btnReturnLobby" class="nav-btn active" onclick="showLobbyView()">
+          🏠 Lobby
+        </button>
+
+        <select id="topSessionSelect" class="session-select-nav" onchange="onNavSessionSelect(this.value)" title="Active Session">
+          <option value="1">Session 01</option>
+          <option value="2">Session 02</option>
+          <option value="3">Session 03</option>
+        </select>
+
+        <button id="btnDualSplit" class="nav-btn" onclick="switchEmbeddedView('dual')">
+          ⚏ Dual Split
+        </button>
+        <button id="btnAtcOnly" class="nav-btn" onclick="switchEmbeddedView('atc')">
+          🎯 Student ATC
+        </button>
+        <button id="btnPilotOnly" class="nav-btn" onclick="switchEmbeddedView('pilot')">
+          ✈ Pilot / Supv
+        </button>
+
+        <span style="color: #334155;">|</span>
+
+        <!-- Logout Button -->
+        <button id="btnLogout" class="nav-btn" onclick="handleLogout()" style="color: #fca5a5; border-color: rgba(239, 68, 68, 0.4);">
+          🚪 Logout
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Viewport Container -->
+    <main class="main-viewport" id="mainViewport">
+      <!-- Default: Multi-Session Selection Lobby -->
+      <div id="lobbyView" class="lobby-container">
+        <header class="lobby-header">
+          <div class="lobby-title">
+            <span>✈</span> MULTI-SESSION ATC RADAR PORTAL
+          </div>
+          <p class="lobby-subtitle">
+            Select a training session below. Each session provides an independent real-time radar simulation environment for a paired <b>Student ATC</b> and <b>Pseudo-Pilot & Supervisor</b>.
+          </p>
+          <div class="lobby-features-bar">
+            <span class="lobby-feature-tag">⏱ Baseline Clock: 01:00 UTC (Paused)</span>
+            <span class="lobby-feature-tag">🎮 Supervisor Controls: Run / Pause Session</span>
+            <span class="lobby-feature-tag">📐 Step Dropdowns: 5° Heading • 1,000 ft Altitudes (A020-A110 / FL130-FL550)</span>
+            <span class="lobby-feature-tag">✈ Aircraft: MAS642 (DELTA ➔ GOLF ➔ FOXTROT)</span>
+          </div>
+        </header>
+
+        <!-- ====================================================================
+             Administrator User Accounts Management Window (Only for admin1)
+             ==================================================================== -->
+        <section id="adminAccountsWindow" class="admin-window" style="display: none;">
+          <div class="admin-window-header">
+            <div class="admin-window-title">
+              <span>👑</span>
+              <span>USER ACCOUNTS & CREDENTIALS ADMINISTRATION</span>
+              <span style="font-size: 10px; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid #0284c7; padding: 2px 7px; border-radius: 4px;">
+                ADMINISTRATOR ACCESS (admin1)
+              </span>
+            </div>
+            <button type="button" class="nav-btn" onclick="toggleAdminWindow(false)" style="padding: 2px 8px; font-size: 11px;">
+              ✕ Hide Window
+            </button>
+          </div>
+
+          <div class="admin-window-grid">
+            <!-- Form to Add New Account -->
+            <div class="admin-pane">
+              <div class="admin-pane-title">
+                <span>➕</span> ADD NEW USER ACCOUNT
+              </div>
+              <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+                Key in credentials below to create a login account for students, trainees, or pilots.
+              </div>
+
+              <div id="adminUserAlert" class="admin-alert"></div>
+
+              <form id="createAccountForm" onsubmit="handleCreateAccount(event)" style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="admin-form-row">
+                  <label class="admin-label" for="newUsernameInput">USERNAME</label>
+                  <input type="text" id="newUsernameInput" class="admin-input" placeholder="e.g. student1 or pilotA" required>
+                </div>
+
+                <div class="admin-form-row">
+                  <label class="admin-label" for="newPasswordInput">PASSWORD</label>
+                  <input type="text" id="newPasswordInput" class="admin-input" placeholder="e.g. radar123" required>
+                </div>
+
+                <div class="admin-form-row">
+                  <label class="admin-label" for="newRoleInput">ROLE / PERMISSION</label>
+                  <select id="newRoleInput" class="admin-input">
+                    <option value="user">Standard User (Student ATC / Pilot)</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn-login-submit" style="padding: 8px 14px; font-size: 12px; margin-top: 4px;">
+                  <span>➕</span> CREATE ACCOUNT
+                </button>
+              </form>
+            </div>
+
+            <!-- List of Registered Accounts -->
+            <div class="admin-pane">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="admin-pane-title">
+                  <span>📋</span> REGISTERED USER ACCOUNTS (<span id="userAccountsCount">1</span>)
+                </div>
+                <button type="button" class="nav-btn" onclick="fetchAndRenderUsers()" style="font-size: 10px; padding: 2px 7px;">
+                  🔄 Refresh
+                </button>
+              </div>
+
+              <div class="users-table-wrap">
+                <table class="users-table">
+                  <thead>
+                    <tr>
+                      <th>USERNAME</th>
+                      <th>PASSWORD</th>
+                      <th>ROLE</th>
+                      <th style="text-align: right;">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTableBody">
+                    <!-- Populated dynamically via JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="font-size: 10px; color: #64748b;">
+                💡 <i>Accounts created here can log in immediately from the start page without administrator window rights.</i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3 Sessions Cards Grid -->
+        <div class="sessions-grid">
+          <!-- Session 1 -->
+          <div class="session-card" id="cardSession1">
+            <div class="card-top">
+              <div>
+                <div class="session-id-title">
+                  <span>SESSION 01</span>
+                </div>
+                <div class="session-sector-tag">SECTOR 04 • DELTA - GOLF - FOXTROT</div>
+              </div>
+              <div id="badgeStatus1" class="session-status-badge status-paused">
+                PAUSED [01:00:00Z]
+              </div>
+            </div>
+
+            <div class="card-info">
+              <div class="info-row">
+                <span class="info-label">SIMULATION CLOCK</span>
+                <span class="info-val highlight" id="clock1">01:00:00 UTC</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">TRAFFIC IN SECTOR</span>
+                <span class="info-val">1 Aircraft (MAS642 • B738)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">ROUTING & CRUISE</span>
+                <span class="info-val">DELTA ➔ GOLF ➔ FOXTROT | FL280</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">CONNECTED USERS</span>
+                <span class="info-val" id="users1">0 Student • 0 Pilot</span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <a href="/atc?session=1" class="btn-enter-role btn-enter-student" target="_blank">
+                <span>🎯 Enter as Student ATC Position</span>
+                <span>↗</span>
+              </a>
+              <a href="/pilot?session=1" class="btn-enter-role btn-enter-pilot" target="_blank">
+                <span>✈ Enter as Pseudo-Pilot & Supervisor</span>
+                <span>↗</span>
+              </a>
+              <button class="btn-enter-role btn-enter-dual" onclick="openSessionDual(1)">
+                <span>⚏ Open Dual Split Console (Session 01)</span>
+                <span>➔</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Session 2 -->
+          <div class="session-card" id="cardSession2">
+            <div class="card-top">
+              <div>
+                <div class="session-id-title">
+                  <span>SESSION 02</span>
+                </div>
+                <div class="session-sector-tag">SECTOR 04 • DELTA - GOLF - FOXTROT</div>
+              </div>
+              <div id="badgeStatus2" class="session-status-badge status-paused">
+                PAUSED [01:00:00Z]
+              </div>
+            </div>
+
+            <div class="card-info">
+              <div class="info-row">
+                <span class="info-label">SIMULATION CLOCK</span>
+                <span class="info-val highlight" id="clock2">01:00:00 UTC</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">TRAFFIC IN SECTOR</span>
+                <span class="info-val">1 Aircraft (MAS642 • B738)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">ROUTING & CRUISE</span>
+                <span class="info-val">DELTA ➔ GOLF ➔ FOXTROT | FL280</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">CONNECTED USERS</span>
+                <span class="info-val" id="users2">0 Student • 0 Pilot</span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <a href="/atc?session=2" class="btn-enter-role btn-enter-student" target="_blank">
+                <span>🎯 Enter as Student ATC Position</span>
+                <span>↗</span>
+              </a>
+              <a href="/pilot?session=2" class="btn-enter-role btn-enter-pilot" target="_blank">
+                <span>✈ Enter as Pseudo-Pilot & Supervisor</span>
+                <span>↗</span>
+              </a>
+              <button class="btn-enter-role btn-enter-dual" onclick="openSessionDual(2)">
+                <span>⚏ Open Dual Split Console (Session 02)</span>
+                <span>➔</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Session 3 -->
+          <div class="session-card" id="cardSession3">
+            <div class="card-top">
+              <div>
+                <div class="session-id-title">
+                  <span>SESSION 03</span>
+                </div>
+                <div class="session-sector-tag">SECTOR 04 • DELTA - GOLF - FOXTROT</div>
+              </div>
+              <div id="badgeStatus3" class="session-status-badge status-paused">
+                PAUSED [01:00:00Z]
+              </div>
+            </div>
+
+            <div class="card-info">
+              <div class="info-row">
+                <span class="info-label">SIMULATION CLOCK</span>
+                <span class="info-val highlight" id="clock3">01:00:00 UTC</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">TRAFFIC IN SECTOR</span>
+                <span class="info-val">1 Aircraft (MAS642 • B738)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">ROUTING & CRUISE</span>
+                <span class="info-val">DELTA ➔ GOLF ➔ FOXTROT | FL280</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">CONNECTED USERS</span>
+                <span class="info-val" id="users3">0 Student • 0 Pilot</span>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <a href="/atc?session=3" class="btn-enter-role btn-enter-student" target="_blank">
+                <span>🎯 Enter as Student ATC Position</span>
+                <span>↗</span>
+              </a>
+              <a href="/pilot?session=3" class="btn-enter-role btn-enter-pilot" target="_blank">
+                <span>✈ Enter as Pseudo-Pilot & Supervisor</span>
+                <span>↗</span>
+              </a>
+              <button class="btn-enter-role btn-enter-dual" onclick="openSessionDual(3)">
+                <span>⚏ Open Dual Split Console (Session 03)</span>
+                <span>➔</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Embedded Split Screen Container (when viewing dual/atc/pilot directly) -->
+      <div id="embeddedContainer" class="split-view-container" style="display: none;"></div>
+    </main>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let activeSessionId = '1';
+    let currentViewMode = 'lobby'; // 'lobby' | 'dual' | 'atc' | 'pilot'
+
+    // ========================================================================
+    // Authentication Handling
+    // ========================================================================
+    function initAuth() {
+      try {
+        const stored = sessionStorage.getItem('radar_user');
+        if (stored) {
+          currentUser = JSON.parse(stored);
+          showPortal();
+        } else {
+          showLogin();
+        }
+      } catch (err) {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      currentUser = null;
+      document.getElementById('loginView').style.display = 'flex';
+      document.getElementById('portalView').style.display = 'none';
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginErrorBox').style.display = 'none';
+      setTimeout(() => {
+        const input = document.getElementById('loginUsername');
+        if (input) input.focus();
+      }, 50);
+    }
+
+    function showPortal() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('portalView').style.display = 'flex';
+
+      const navUsername = document.getElementById('navUsername');
+      const navRoleBadge = document.getElementById('navRoleBadge');
+      const btnAdminAccountsNav = document.getElementById('btnAdminAccountsNav');
+      const adminAccountsWindow = document.getElementById('adminAccountsWindow');
+
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username.toLowerCase() === 'admin1');
+
+      if (navUsername) navUsername.textContent = currentUser ? currentUser.username : 'User';
+      if (navRoleBadge) {
+        if (isAdmin) {
+          navRoleBadge.textContent = 'ADMIN';
+          navRoleBadge.style.color = '#38bdf8';
+          navRoleBadge.style.borderColor = '#0284c7';
+          navRoleBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+        } else {
+          navRoleBadge.textContent = 'USER';
+          navRoleBadge.style.color = '#94a3b8';
+          navRoleBadge.style.borderColor = '#334155';
+          navRoleBadge.style.background = 'rgba(15, 23, 42, 0.5)';
+        }
+      }
+
+      // If Administrator: Show the additional window and top nav button
+      if (isAdmin) {
+        if (btnAdminAccountsNav) btnAdminAccountsNav.style.display = 'flex';
+        if (adminAccountsWindow) {
+          adminAccountsWindow.style.display = 'flex';
+          fetchAndRenderUsers();
+        }
+      } else {
+        // If other account: completely hide and remove admin window and button!
+        if (btnAdminAccountsNav) btnAdminAccountsNav.style.display = 'none';
+        if (adminAccountsWindow) adminAccountsWindow.style.display = 'none';
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const userField = document.getElementById('loginUsername');
+      const passField = document.getElementById('loginPassword');
+      const errBox = document.getElementById('loginErrorBox');
+      const errMsg = document.getElementById('loginErrorMsg');
+
+      const username = userField.value.trim();
+      const password = passField.value;
+
+      errBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          currentUser = data.user;
+          sessionStorage.setItem('radar_user', JSON.stringify(currentUser));
+          showPortal();
+        } else {
+          errBox.style.display = 'flex';
+          errMsg.textContent = data.message || 'Invalid username or password';
+        }
+      } catch (err) {
+        errBox.style.display = 'flex';
+        errMsg.textContent = 'Network or server communication error';
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('radar_user');
+      showLogin();
+    }
+
+    function toggleAdminWindow(forceState) {
+      const win = document.getElementById('adminAccountsWindow');
+      if (!win) return;
+      if (forceState !== undefined) {
+        win.style.display = forceState ? 'flex' : 'none';
+      } else {
+        win.style.display = win.style.display === 'none' ? 'flex' : 'none';
+      }
+      if (win.style.display === 'flex') {
+        fetchAndRenderUsers();
+      }
+    }
+
+    // ========================================================================
+    // User Management (Admin Window Functionality)
+    // ========================================================================
+    async function fetchAndRenderUsers() {
+      try {
+        const res = await fetch('/api/users');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.users)) {
+          renderUsersTable(data.users);
+        }
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('usersTableBody');
+      const countEl = document.getElementById('userAccountsCount');
+      if (!tbody) return;
+
+      if (countEl) countEl.textContent = users.length;
+      tbody.innerHTML = '';
+
+      users.forEach(u => {
+        const isPrimaryAdmin = u.username.toLowerCase() === 'admin1';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b style="color: ${isPrimaryAdmin ? '#38bdf8' : '#fff'};">${u.username}</b></td>
+          <td><code style="color: #cbd5e1; background: #0b1219; padding: 2px 5px; border-radius: 3px;">${u.password || '••••••'}</code></td>
+          <td><span style="font-size: 10px; color: ${u.role === 'admin' ? '#38bdf8' : '#94a3b8'};">${u.role.toUpperCase()}</span></td>
+          <td style="text-align: right;">
+            ${isPrimaryAdmin
+              ? '<span style="font-size: 10px; color: #64748b;">(Protected)</span>'
+              : `<button class="btn-del-user" onclick="deleteAccount('${u.username}')">✕ Delete</button>`
+            }
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function handleCreateAccount(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById('newUsernameInput');
+      const passwordInput = document.getElementById('newPasswordInput');
+      const roleInput = document.getElementById('newRoleInput');
+      const alertBox = document.getElementById('adminUserAlert');
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      const role = roleInput ? roleInput.value : 'user';
+
+      if (!username || !password) return;
+
+      alertBox.className = 'admin-alert';
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          alertBox.className = 'admin-alert success';
+          alertBox.textContent = `✓ Account "${username}" created successfully!`;
+          usernameInput.value = '';
+          passwordInput.value = '';
+          if (data.users) renderUsersTable(data.users);
+        } else {
+          alertBox.className = 'admin-alert error';
+          alertBox.textContent = `✕ ${data.message || 'Could not create account'}`;
+        }
+      } catch (err) {
+        alertBox.className = 'admin-alert error';
+        alertBox.textContent = '✕ Network error while creating account';
+      }
+    }
+
+    async function deleteAccount(username) {
+      if (!confirm(`Delete user account "${username}"?`)) return;
+      try {
+        const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.users) {
+          renderUsersTable(data.users);
+        }
+      } catch (err) {
+        alert('Failed to delete account');
+      }
+    }
+
+    // ========================================================================
+    // Multi-Session Simulation Status Polling & Views
+    // ========================================================================
+    function formatUtc(totalSeconds) {
+      const sec = totalSeconds !== undefined ? totalSeconds : 3600;
+      const h = String(Math.floor((sec / 3600) % 24)).padStart(2, '0');
+      const m = String(Math.floor((sec / 60) % 60)).padStart(2, '0');
+      const s = String(Math.floor(sec % 60)).padStart(2, '0');
+      return `${h}:${m}:${s}Z`;
+    }
+
+    async function updateSessionsStatus() {
+      try {
+        const res = await fetch('/api/sessions');
+        if (!res.ok) return;
+        const sessions = await res.json();
+        sessions.forEach(s => {
+          const sid = s.sessionId;
+          const badge = document.getElementById(`badgeStatus${sid}`);
+          const clock = document.getElementById(`clock${sid}`);
+          const users = document.getElementById(`users${sid}`);
+          const clockStr = formatUtc(s.simTimeSeconds);
+
+          if (clock) clock.textContent = `${clockStr} UTC`;
+          if (users) users.textContent = `${s.studentsCount} Student • ${s.pilotsCount} Pilot`;
+
+          if (badge) {
+            if (s.isPaused) {
+              badge.textContent = `PAUSED [${clockStr}]`;
+              badge.className = 'session-status-badge status-paused';
+            } else {
+              badge.textContent = `RUNNING [${clockStr}]`;
+              badge.className = 'session-status-badge status-running';
+            }
+          }
+        });
+      } catch (err) {
+        // silent fail on network glitch
+      }
+    }
+
+    setInterval(updateSessionsStatus, 1000);
+    updateSessionsStatus();
+
+    function showLobbyView() {
+      currentViewMode = 'lobby';
+      document.getElementById('lobbyView').style.display = 'flex';
+      document.getElementById('embeddedContainer').style.display = 'none';
+      document.getElementById('btnReturnLobby').classList.add('active');
+      document.getElementById('btnDualSplit').classList.remove('active');
+      document.getElementById('btnAtcOnly').classList.remove('active');
+      document.getElementById('btnPilotOnly').classList.remove('active');
+
+      const url = new URL(window.location);
+      url.searchParams.delete('session');
+      window.history.replaceState({}, '', url);
+    }
+
+    function openSessionDual(sid) {
+      activeSessionId = String(sid);
+      document.getElementById('topSessionSelect').value = activeSessionId;
+      switchEmbeddedView('dual');
+    }
+
+    function onNavSessionSelect(sid) {
+      activeSessionId = String(sid);
+      if (currentViewMode === 'lobby') {
+        switchEmbeddedView('dual');
+      } else {
+        switchEmbeddedView(currentViewMode);
+      }
+    }
+
+    function switchEmbeddedView(mode) {
+      currentViewMode = mode;
+      document.getElementById('lobbyView').style.display = 'none';
+      const container = document.getElementById('embeddedContainer');
+      container.style.display = 'flex';
+
+      const btnLobby = document.getElementById('btnReturnLobby');
+      const btnDual = document.getElementById('btnDualSplit');
+      const btnAtc = document.getElementById('btnAtcOnly');
+      const btnPilot = document.getElementById('btnPilotOnly');
+
+      btnLobby.classList.remove('active');
+      btnDual.classList.remove('active');
+      btnAtc.classList.remove('active');
+      btnPilot.classList.remove('active');
+
+      const url = new URL(window.location);
+      url.searchParams.set('session', activeSessionId);
+      window.history.replaceState({}, '', url);
+
+      if (mode === 'dual') {
+        btnDual.classList.add('active');
+        container.innerHTML = `
+          <div class="split-half" style="flex: 1.15;">
+            <iframe src="/atc?session=${activeSessionId}" class="split-frame" title="Student ATC Radar"></iframe>
+          </div>
+          <div class="split-half" style="flex: 1;">
+            <iframe src="/pilot?session=${activeSessionId}" class="split-frame" title="Pseudo-Pilot Supervisor Console"></iframe>
+          </div>
+        `;
+      } else if (mode === 'atc') {
+        btnAtc.classList.add('active');
+        container.innerHTML = `
+          <iframe src="/atc?session=${activeSessionId}" class="split-frame" title="Student ATC Radar"></iframe>
+        `;
+      } else if (mode === 'pilot') {
+        btnPilot.classList.add('active');
+        container.innerHTML = `
+          <iframe src="/pilot?session=${activeSessionId}" class="split-frame" title="Pseudo-Pilot Supervisor Console"></iframe>
+        `;
+      }
+    }
+
+    // Check query params and initialize authentication
+    initAuth();
+
+    const initParams = new URLSearchParams(window.location.search);
+    const initialSession = initParams.get('session');
+    if (initialSession && ['1', '2', '3'].includes(initialSession)) {
+      activeSessionId = initialSession;
+      document.getElementById('topSessionSelect').value = activeSessionId;
+      if (currentUser) {
+        switchEmbeddedView('dual');
+      }
+    }
+  </script>
+</body>
+</html>

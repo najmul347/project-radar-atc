@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project RADAR ATC Training System (Pseudo-Pilot Position)</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/atc.css">
+</head>
+<body>
+  <div class="radar-wrapper">
+    <!-- Top Menu Bar -->
+    <header class="radar-header">
+      <div class="topsky-btn-group">
+        <button class="topsky-btn active" id="topUtcClock" title="Simulation Time (UTC)">01:00:00 UTC</button>
+        <button class="topsky-btn">02L/02C/02R</button>
+        <button class="topsky-btn">1013</button>
+        <button class="topsky-btn">E10</button>
+      </div>
+
+      <div class="topsky-title">
+        <div class="session-selector-nav">
+          <span class="session-badge" id="sessionLabel">SESSION 01</span>
+        </div>
+        <span class="badge" style="background: rgba(234, 179, 8, 0.2); border-color: var(--atm-yellow); color: var(--atm-yellow);">
+          PSEUDO-PILOT & SUPERVISOR CONSOLE
+        </span>
+        <button id="btnSupervisorRunPause" class="radar-btn supervisor-run-btn paused" title="Supervisor: Run or Pause Session">
+          <span id="superBtnIcon">▶</span> <span id="superBtnText">RUN SESSION (01:00 UTC)</span>
+        </button>
+        <span id="simStatusBadge" class="badge badge-amber">PAUSED [01:00:00Z]</span>
+      </div>
+
+      <div id="conflictAlert" class="conflict-alert">
+        <span>⚠️ CA: LOSS OF SEPARATION</span>
+      </div>
+
+      <div class="radar-stats">
+        <div class="stat-item">
+          <span>TRAFFIC:</span>
+          <span id="aircraftCount" class="stat-value">1</span>
+        </div>
+        <div class="stat-item">
+          <span>UTC:</span>
+          <span id="utcClock" class="stat-value">01:00:00Z</span>
+        </div>
+        <div class="stat-item">
+          <button id="btnToggleDrawer" class="radar-btn active" style="border-color: var(--atm-yellow); color: var(--atm-yellow);">
+            ✈ Pilot Controls Dock
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Transmission Notification Toast -->
+    <div id="transmissionToast" class="transmission-toast">
+      <span>📡</span> <span id="toastText">Radio transmission</span>
+    </div>
+
+    <!-- Radar Canvas Area (Identical Radar View to Student) -->
+    <main class="radar-canvas-container" id="canvasContainer">
+      <canvas id="radarCanvas"></canvas>
+
+      <!-- ATM Right-Click Context Menu (for "Assume" Control) -->
+      <div id="atmContextMenu" class="atm-context-menu">
+        <div id="ctxHeader" class="atm-context-header">MAS642 • B738</div>
+        <div id="ctxAssume" class="atm-context-item assume-opt">
+          <span>✓</span> <span id="ctxAssumeText">Assume</span>
+        </div>
+        <div id="ctxToggleRoute" class="atm-context-item route-opt">
+          <span>🛣</span> <span id="ctxRouteText">Toggle Route (Green)</span>
+        </div>
+        <div id="ctxAltDropdown" class="atm-context-item">
+          <span>↕</span> <span>Set Altitude (Dropdown)</span>
+        </div>
+        <div id="ctxHdgDropdown" class="atm-context-item">
+          <span>↔</span> <span>Set Heading (Dropdown)</span>
+        </div>
+        <div id="ctxClearance" class="atm-context-item">
+          <span>✎</span> <span>Key In Clearance</span>
+        </div>
+      </div>
+
+      <!-- Radar Controls Overlay (Zoom & Vector, Sweep Beam Removed) -->
+      <div class="radar-controls-overlay">
+        <div class="control-btn-group">
+          <button id="btnZoomIn" class="radar-btn" title="Zoom In">Zoom +</button>
+          <button id="btnZoomOut" class="radar-btn" title="Zoom Out">Zoom -</button>
+          <button id="btnResetView" class="radar-btn" title="Reset Center">Center</button>
+        </div>
+        <div class="control-btn-group">
+          <button id="btnVectorLen" class="radar-btn" title="Cycle Vector Lookahead">Vector: 2 MIN</button>
+          <button id="btnToggleAudio" class="radar-btn" title="Toggle Sound">Sound: ON</button>
+        </div>
+      </div>
+
+      <!-- Airway Legend & Danger Areas Overlay -->
+      <div class="radar-legend">
+        <div class="legend-title">
+          <span>AIRWAY NETWORK</span>
+          <span style="color: var(--atm-yellow); font-size: 10px;">SECTOR 04</span>
+        </div>
+        <div class="legend-grid">
+          <div class="legend-item">✕ <span>GOLF</span> (Hub)</div>
+          <div class="legend-item">✕ <span>ALPHA</span> (NE)</div>
+          <div class="legend-item">✕ <span>BRAVO</span> (E)</div>
+          <div class="legend-item">✕ <span>CHARLIE</span> (SE)</div>
+          <div class="legend-item">✕ <span>DELTA</span> (SW)</div>
+          <div class="legend-item">✕ <span>ECHO</span> (W)</div>
+          <div class="legend-item">✕ <span>FOXTROT</span> (NW)</div>
+          <div class="legend-item"><span style="color: #ef4444;">■ DA1 - DA24</span></div>
+        </div>
+        <div style="margin-top: 6px; font-size: 10px; color: var(--atm-yellow); border-top: 1px solid var(--atm-border); padding-top: 4px;">
+          💡 <i>Pilot View: Click aircraft or [▶ WILCO / EXEC] button on data block to initiate aircraft maneuvers.</i>
+        </div>
+      </div>
+
+      <!-- Pseudo-Pilot Control Drawer (Collapsible) -->
+      <aside id="pilotDrawer" class="pilot-drawer">
+        <div class="drawer-header">
+          <h2><span>✈</span> PSEUDO-PILOT FLIGHT CONTROLS</h2>
+          <button id="btnCloseDrawer" class="radar-btn" style="font-size: 10px; padding: 2px 7px;">✕ Close</button>
+        </div>
+
+        <div class="drawer-content">
+          <!-- Pending ATC Clearance Alert & Execution Box -->
+          <div id="pendingAlertBox" class="pending-alert-box">
+            <div class="pending-alert-title">
+              <span>🔔</span> INCOMING ATC CLEARANCE FROM STUDENT
+            </div>
+            <div id="pendingDetailsText" class="pending-details">
+              MAS642: Cleared to FL320, Heading 180°
+            </div>
+            <button type="button" id="btnWilcoExecute" class="btn-wilco-execute">
+              <span>▶</span> WILCO & INITIATE FLIGHT MANEUVER
+            </button>
+          </div>
+
+          <!-- Aircraft Selector Bar -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="font-family: var(--font-mono); font-size: 11px; color: var(--atm-text-muted); font-weight: 600;">
+                ACTIVE AIRCRAFT
+              </label>
+              <span id="drawerTrafficCount" class="badge" style="background:#1e293b; color:#94a3b8;">6 ACTIVE</span>
+            </div>
+            <select id="pilotAircraftSelect" style="width: 100%; font-size: 12px; font-weight: 600;">
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Selected Aircraft Status Strip -->
+          <div style="background: #141c26; border: 1px solid var(--atm-border); border-radius: 4px; padding: 9px 12px; font-family: var(--font-mono); font-size: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div>Callsign: <b id="drawerCallsign" style="color: #fff;">MAS642</b></div>
+            <div>Type: <b id="drawerType" style="color: #38bdf8;">B738</b></div>
+            <div>Current Alt: <b id="drawerCurAlt" style="color: #22c55e;">280</b></div>
+            <div>Current Hdg: <b id="drawerCurHdg" style="color: #22c55e;">047°</b></div>
+            <div>Speed: <b id="drawerCurSpd" style="color: #fff;">0420</b></div>
+            <div>Dest: <b id="drawerDest" style="color: #94a3b8;">WMKK</b></div>
+            <div style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 4px; display: flex; justify-content: space-between;">
+              <span>Exit FL (XFL):</span> <b id="drawerXFL" style="color: #38bdf8;">FL360 (▲CLB)</b>
+            </div>
+          </div>
+          <button type="button" id="btnToggleAssume" class="radar-btn" style="width: 100%; justify-content: center; border-color: #38bdf8; color: #38bdf8;">
+            ✓ Toggle Assume Control (White / Maroon)
+          </button>
+
+          <!-- Manual / Override Clearance Controls -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 4px; border-top: 1px solid var(--atm-border);">
+            <div style="font-size: 10px; color: var(--atm-text-muted);">
+              💡 <i>Options are blank by default. Only filled maneuvers will be followed through.</i>
+            </div>
+            <button type="button" onclick="drawerClearAll()" class="radar-btn" style="padding: 1px 7px; font-size: 10px; color: #94a3b8;" title="Reset all options to blank">
+              ✕ Clear to Blank
+            </button>
+          </div>
+
+          <!-- Assigned Heading -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--atm-yellow); font-weight: 700; display: flex; justify-content: space-between;">
+              <span>ASSIGNED HEADING (5° STEPS)</span>
+              <span style="color: var(--atm-text-muted); font-weight: normal;">Active: <b id="activeHdgVal" style="color:#fff;">047°</b></span>
+            </div>
+            <select id="drawerSelectHdg" class="drawer-select">
+              <!-- Populated dynamically with 360 to 355 in 5° steps -->
+            </select>
+            <!-- Direct to fixes -->
+            <div class="popover-shortcuts" style="grid-template-columns: repeat(4, 1fr);">
+              <button type="button" onclick="drawerDirectWp('GOLF')">Dir GOLF</button>
+              <button type="button" onclick="drawerDirectWp('ALPHA')">Dir ALPHA</button>
+              <button type="button" onclick="drawerDirectWp('BRAVO')">Dir BRAVO</button>
+              <button type="button" onclick="drawerDirectWp('CHARLIE')">Dir CHARLIE</button>
+            </div>
+            <div class="popover-shortcuts" style="grid-template-columns: repeat(3, 1fr);">
+              <button type="button" onclick="drawerDirectWp('DELTA')">Dir DELTA</button>
+              <button type="button" onclick="drawerDirectWp('ECHO')">Dir ECHO</button>
+              <button type="button" onclick="drawerDirectWp('FOXTROT')">Dir FOXTROT</button>
+            </div>
+            <div class="popover-shortcuts">
+              <button type="button" onclick="drawerAdjHdg(-10)">Turn L 10°</button>
+              <button type="button" onclick="drawerAdjHdg(-30)">Turn L 30°</button>
+              <button type="button" onclick="drawerAdjHdg(10)">Turn R 10°</button>
+              <button type="button" onclick="drawerAdjHdg(30)">Turn R 30°</button>
+            </div>
+          </div>
+
+          <!-- Assigned Altitude -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--atm-yellow); font-weight: 700; display: flex; justify-content: space-between;">
+              <span>ASSIGNED ALTITUDE / FL (1,000 FT STEPS)</span>
+              <span style="color: var(--atm-text-muted); font-weight: normal;">Active: <b id="activeAltVal" style="color:#fff;">FL280</b></span>
+            </div>
+            <select id="drawerSelectAlt" class="drawer-select">
+              <!-- Populated dynamically with A020-A110 & FL130-FL550 -->
+            </select>
+            <div class="popover-shortcuts" style="grid-template-columns: repeat(4, 1fr);">
+              <button type="button" onclick="drawerSetAltCode('A050')">A050 (5k)</button>
+              <button type="button" onclick="drawerSetAltCode('A080')">A080 (8k)</button>
+              <button type="button" onclick="drawerSetAltCode('A110')">A110 (11k)</button>
+              <button type="button" onclick="drawerSetAltCode('FL280')">FL280</button>
+            </div>
+          </div>
+
+          <!-- Assigned Speed -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--atm-yellow); font-weight: 700; display: flex; justify-content: space-between;">
+              <span>ASSIGNED SPEED</span>
+              <span style="color: var(--atm-text-muted); font-weight: normal;">Active: <b id="activeSpdVal" style="color:#fff;">0426</b></span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <input type="number" id="drawerInputSpd" min="120" max="550" step="5" placeholder="Blank (Maintain Speed)" style="flex: 1; font-weight: 700;">
+              <div class="popover-unit">KNOTS</div>
+            </div>
+            <div class="popover-shortcuts">
+              <button type="button" onclick="drawerSetSpd(400)">400 kt</button>
+              <button type="button" onclick="drawerSetSpd(420)">420 kt</button>
+              <button type="button" onclick="drawerSetSpd(450)">450 kt</button>
+              <button type="button" onclick="drawerSetSpd(480)">480 kt</button>
+            </div>
+          </div>
+
+          <!-- Manual Transmit / Execute Button -->
+          <button type="button" id="btnManualExecute" class="btn-wilco-execute" style="background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); border-color: #38bdf8; color: #000; font-weight: 700;">
+            <span>📡</span> TRANSMIT & INITIATE MANEUVER
+          </button>
+        </div>
+
+        <!-- Instructor Tools Bar at bottom of drawer -->
+        <div class="instructor-tools">
+          <button id="btnSpawnModal" class="radar-btn" style="flex: 1; justify-content: center; background: #1e3a5f; color: #93c5fd; border-color: #3b82f6;">
+            ＋ Spawn
+          </button>
+          <button id="btnLoadGameModal" class="radar-btn" style="flex: 1; justify-content: center; background: #142a42; color: #38bdf8; border-color: #0284c7;" title="Load or Store Flight Plans (15 Slots)">
+            📂 Load Game
+          </button>
+          <button id="btnPauseResume" class="radar-btn" style="flex: 1; justify-content: center; background: #332610; color: #fde047; border-color: var(--atm-yellow);">
+            <span id="pauseBtnIcon">⏸</span> <span id="pauseBtnText">Pause</span>
+          </button>
+          <button id="btnResetSim" class="radar-btn" style="flex: 1; justify-content: center; background: #3b141e; color: #fca5a5; border-color: var(--atm-red);">
+            ↺ Reset
+          </button>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Thales TopSky / Eurocat Bottom Bar (as seen in IMG_6687.jpg) -->
+    <footer class="radar-bottom-bar">
+      <div class="bottom-buttons-left">
+        <button class="bottom-btn">Airspace</button>
+        <button class="bottom-btn highlight">Ext Msg (41)</button>
+        <button class="bottom-btn alert">MAS642: Coord ></button>
+        <button class="bottom-btn">Agenda</button>
+        <button class="bottom-btn">Task List [0]</button>
+      </div>
+      <div style="color: var(--atm-text-muted); font-size: 10px;">
+        PROJECT RADAR ATC TRAINING SYSTEM • PSEUDO-PILOT CONTROLLER
+      </div>
+    </footer>
+  </div>
+
+  <!-- Spawn Aircraft Modal: Offers Altitude and Speed only; Routing transits GOLF to exit waypoint -->
+  <div id="spawnModal" class="clearance-popover" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; z-index: 100;">
+    <div class="popover-header">
+      <span class="callsign" style="color: #60a5fa;">SPAWN NEW AIRCRAFT</span>
+      <span id="closeSpawnModal" class="close-btn">&times;</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+      <div style="display: flex; gap: 8px;">
+        <div style="flex: 1;">
+          <label style="font-size: 10px; color: var(--atm-text-muted); font-weight: 600;">CALLSIGN</label>
+          <input type="text" id="spawnCallsign" placeholder="e.g. MAS712" style="width: 100%; font-weight: 700;">
+        </div>
+        <div style="width: 120px;">
+          <label style="font-size: 10px; color: var(--atm-text-muted); font-weight: 600;">AIRCRAFT TYPE</label>
+          <select id="spawnType" style="width: 100%;">
+            <option value="B738">B738</option>
+            <option value="A320">A320</option>
+            <option value="B77W">B77W</option>
+            <option value="A359">A359</option>
+            <option value="A333">A333</option>
+            <option value="B789">B789</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 10px; color: var(--atm-yellow); font-weight: 700;">
+          ENTRY CORRIDOR ROUTING (Transits GOLF ➔ Exit Waypoint)
+        </label>
+        <select id="spawnEntryPreset" style="width: 100%; font-family: var(--font-mono); font-size: 11px;">
+          <optgroup label="Northwest Entry (via FOXTROT)">
+            <option value="NW_SE">NW Entry: FOXTROT ➔ GOLF ➔ CHARLIE (Exit SE)</option>
+            <option value="NW_E">NW Entry: FOXTROT ➔ GOLF ➔ BRAVO (Exit E)</option>
+          </optgroup>
+          <optgroup label="Northeast Entry (via ALPHA)">
+            <option value="NE_SW">NE Entry: ALPHA ➔ GOLF ➔ DELTA (Exit SW)</option>
+            <option value="NE_W">NE Entry: ALPHA ➔ GOLF ➔ ECHO (Exit W)</option>
+          </optgroup>
+          <optgroup label="East Entry (via BRAVO)">
+            <option value="E_W">E Entry: BRAVO ➔ GOLF ➔ ECHO (Exit W)</option>
+            <option value="E_NW">E Entry: BRAVO ➔ GOLF ➔ FOXTROT (Exit NW)</option>
+          </optgroup>
+          <optgroup label="Southeast Entry (via CHARLIE)">
+            <option value="SE_NW">SE Entry: CHARLIE ➔ GOLF ➔ FOXTROT (Exit NW)</option>
+            <option value="SE_NE">SE Entry: CHARLIE ➔ GOLF ➔ ALPHA (Exit NE)</option>
+          </optgroup>
+          <optgroup label="Southwest Entry (via DELTA)">
+            <option value="SW_NE">SW Entry: DELTA ➔ GOLF ➔ ALPHA (Exit NE)</option>
+            <option value="SW_NW">SW Entry: DELTA ➔ GOLF ➔ FOXTROT (Exit NW)</option>
+          </optgroup>
+          <optgroup label="West Entry (via ECHO)">
+            <option value="W_E">W Entry: ECHO ➔ GOLF ➔ BRAVO (Exit E)</option>
+            <option value="W_SE">W Entry: ECHO ➔ GOLF ➔ CHARLIE (Exit SE)</option>
+          </optgroup>
+        </select>
+        <div style="font-size: 9px; color: var(--atm-text-muted); margin-top: 3px;">
+          ✈ Heading is automated along the corridor: Enters via fix, transits GOLF, and exits sector.
+        </div>
+      </div>
+
+      <!-- Spawn options: Altitude, Exit FL (XFL), & Speed -->
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1.2;">
+          <label style="font-size: 10px; color: var(--atm-text-muted); font-weight: 600;">ENTRY ALTITUDE / FL</label>
+          <select id="spawnAltitudeSelect" style="width: 100%; font-family: var(--font-mono); font-weight: 700;">
+            <!-- Populated dynamically with A020-A110 & FL130-FL550 -->
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label style="font-size: 10px; color: var(--atm-text-muted); font-weight: 600;" title="Key in Exit Flight Level (e.g. FL250, 250, 310, A080). Leave blank for auto mix.">
+            EXIT FL (XFL) <span style="color: #38bdf8;">*NEW</span>
+          </label>
+          <input type="text" id="spawnXFLInput" placeholder="e.g. FL250 / 310" style="width: 100%; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">
+        </div>
+        <div style="flex: 0.9;">
+          <label style="font-size: 10px; color: var(--atm-text-muted); font-weight: 600;">SPEED (KT)</label>
+          <input type="number" id="spawnSpeed" value="420" min="140" max="550" step="10" style="width: 100%; font-family: var(--font-mono); font-weight: 700;">
+        </div>
+      </div>
+
+      <!-- Optional: Save new flight plan into Game Slot 1-15 -->
+      <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 4px; padding: 6px 10px;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer; color: #bae6fd;">
+          <input type="checkbox" id="spawnSaveToSlotCheck">
+          <span>Also save to Flight Plans Library (Slot 1–15)</span>
+        </label>
+        <div id="spawnSlotSelectWrap" style="display: none; margin-top: 6px;">
+          <select id="spawnSaveSlotId" style="width: 100%; font-size: 11px;">
+            <option value="1">Slot 01: Baseline Single Traffic (MAS642)</option>
+            <option value="2">Slot 02: Head-On Crossing at GOLF</option>
+            <option value="3">Slot 03: 90° Convergence over GOLF</option>
+            <option value="4">Slot 04: Triple Convergence at GOLF</option>
+            <option value="5">Slot 05: In-Trail Same Route Following</option>
+            <option value="6">Slot 06: Four-Corner Sector Transit</option>
+            <option value="7">Slot 07: Climbing vs Level Crossing</option>
+            <option value="8">Slot 08: High-Speed Overtake In-Trail</option>
+            <option value="9">Slot 09: 5-Aircraft Peak Sector Rush</option>
+            <option value="10">Slot 10: 6-Airway Radial Saturation</option>
+            <option value="11">Slot 11: Emergency Descent Drill</option>
+            <option value="12">Slot 12: Dual Parallel Crossing</option>
+            <option value="13">Slot 13: Staggered Spacing Assessment</option>
+            <option value="14">Slot 14: Custom Instructor Scenario A</option>
+            <option value="15">Slot 15: Custom Instructor Scenario B</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+      <button type="button" id="cancelSpawn" class="radar-btn">Cancel</button>
+      <button type="button" id="confirmSpawn" class="radar-btn" style="background: #0284c7; color: #fff; border-color: #38bdf8; font-weight: 700;">
+        Spawn Aircraft
+      </button>
+    </div>
+  </div>
+
+  <!-- Load Game / Stored Flight Plans Modal (Up to 15 Persistent Scenarios) -->
+  <div id="loadGameModal" class="clearance-popover load-game-dialog" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 720px; max-width: 95vw; max-height: 85vh; z-index: 110; display: none;">
+    <div class="popover-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px;">📂</span>
+        <span class="callsign" style="color: #38bdf8;">FLIGHT PLANS & SCENARIOS LIBRARY (15 SLOTS)</span>
+      </div>
+      <span id="closeLoadGameModal" class="close-btn">&times;</span>
+    </div>
+
+    <div style="padding: 10px 14px; background: #0c141f; border-bottom: 1px solid var(--atm-border); font-size: 11px; color: var(--atm-text-muted); display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        Select a flight plan scenario to load into <b>Session <span id="loadGameCurrentSession">01</span></b>, or save current sector traffic into any slot.
+      </div>
+      <button type="button" id="btnRefreshScenarios" class="radar-btn" style="font-size: 10px; padding: 2px 8px;">
+        🔄 Refresh
+      </button>
+    </div>
+
+    <!-- Scrollable 15 Slots Container -->
+    <div id="scenariosListContainer" class="scenarios-list-container">
+      <!-- 15 Slots rendered dynamically via pilot.js -->
+    </div>
+
+    <div class="popover-footer" style="padding: 10px 14px; border-top: 1px solid var(--atm-border); display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-size: 11px; color: var(--atm-text-muted);">
+        💡 All routings transit GOLF and follow airway corridors to exit fixes.
+      </div>
+      <button type="button" id="btnCloseLoadGameFooter" class="radar-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Socket.io and Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/audio.js"></script>
+  <script src="/js/radar-core.js"></script>
+  <script src="/js/pilot.js"></script>
+</body>
+</html>

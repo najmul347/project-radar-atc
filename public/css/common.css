@@ -1,0 +1,126 @@
+/* Common Styles for ATC Simulation */
+:root {
+  --bg-dark: #0a0e14;
+  --bg-panel: #111822;
+  --bg-card: #16202c;
+  --bg-card-hover: #1c2b3d;
+  --border-color: #243548;
+  --text-main: #d8e2ec;
+  --text-muted: #7e94a8;
+  --accent-cyan: #00d2ff;
+  --accent-green: #00ff88;
+  --accent-amber: #ffb830;
+  --accent-red: #ff3b5c;
+  --accent-blue: #3b82f6;
+  --font-mono: 'SF Mono', 'Fira Code', 'Roboto Mono', 'Cascadia Code', Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  overflow-x: hidden;
+  user-select: none;
+}
+
+button {
+  font-family: var(--font-mono);
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.15s ease-in-out;
+}
+
+button:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+input, select {
+  font-family: var(--font-mono);
+  background-color: #0b1219;
+  border: 1px solid var(--border-color);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.2);
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-green {
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--accent-green);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+}
+
+.badge-amber {
+  background: rgba(255, 184, 48, 0.15);
+  color: var(--accent-amber);
+  border: 1px solid rgba(255, 184, 48, 0.4);
+}
+
+.badge-red {
+  background: rgba(255, 59, 92, 0.2);
+  color: var(--accent-red);
+  border: 1px solid rgba(255, 59, 92, 0.6);
+  animation: pulse-red 1.2s infinite;
+}
+
+.badge-cyan {
+  background: rgba(0, 210, 255, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 210, 255, 0.4);
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.97); }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0e14;
+}
+::-webkit-scrollbar-thumb {
+  background: #243548;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b5066;
+}
